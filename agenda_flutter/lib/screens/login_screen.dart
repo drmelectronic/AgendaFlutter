@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen>{
   String username = '';
   String password = '';
   bool hidePassword = true;
-  var version = '1.0.2';
+  var version = '1.0.3';
 
   double height = 50;
 
@@ -62,12 +62,12 @@ class _LoginScreenState extends State<LoginScreen>{
   Future loadSharedPreferences () async {
     SharedPreferences prefs = await _prefs;
     setState(() {
-      empresa = prefs.getString('empresa')!;
+      empresa = prefs.getString('empresa') ?? '';
       if (!empresas.contains(empresa)) {
         empresa = 'URBANITO';
       }
-      username = prefs.getString('username')!;
-      password = prefs.getString('password')!;
+      username = prefs.getString('username') ?? '';
+      password = prefs.getString('password') ?? '';
       _usernameTextController.value = TextEditingValue(
         text: username
       );
