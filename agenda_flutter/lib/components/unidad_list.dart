@@ -1,5 +1,5 @@
 import 'package:agenda_flutter/components/unidad_row.dart';
-import 'package:agenda_flutter/models/unidad.dart';
+import 'package:agenda_flutter/entity/unidad.dart';
 import 'package:flutter/material.dart';
 
 class UnidadListWidget extends StatelessWidget {

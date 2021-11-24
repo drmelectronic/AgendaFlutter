@@ -1,5 +1,6 @@
-import 'package:agenda_flutter/models/unidad.dart';
+import 'package:agenda_flutter/entity/unidad.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 
 class UnidadRowWidget extends StatelessWidget {
   final Unidad unidad;
@@ -12,7 +13,16 @@ class UnidadRowWidget extends StatelessWidget {
       leading: const Icon(Icons.phone),
       title: Text(unidad.padron.toString()),
       subtitle: Text(unidad.placa),
-      trailing: Text(unidad.celular),
+      trailing: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
+          textStyle: const TextStyle(fontSize: 20)
+        ),
+        child: const Text('Llamar'),
+        onPressed: () async {
+          await FlutterPhoneDirectCaller.callNumber(unidad.celular.toString());
+        },
+      ),
     );
   }
 }

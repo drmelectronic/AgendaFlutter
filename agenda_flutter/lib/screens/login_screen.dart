@@ -1,10 +1,11 @@
 
 import 'package:agenda_flutter/models/login.dart';
 import 'package:agenda_flutter/screens/agenda_screen.dart';
-import 'package:agenda_flutter/services/login_service.dart';
+import 'package:agenda_flutter/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -16,17 +17,141 @@ class LoginScreen extends StatefulWidget {
 
 
 class _LoginScreenState extends State<LoginScreen>{
+  List<String> empresas =  ['ARCOIRIS', 'ET160', 'ET41', 'ETFVSA', 'ETMISPSA',
+    'EVIFASA', 'LAS FLORES', 'LUBARSA', 'SAN GENARO', 'SAN GERMAN', 'SAN PEDRO',
+    'SMP36', 'URBANITO'];
 
   LoginRequestModel loginRequestModel = LoginRequestModel(password: '', username: '');
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  String empresa = 'URBANITO';
+  String username = '';
+  String password = '';
   bool hidePassword = true;
+  var version = '1.0.2';
+
+  double height = 50;
+
+  final TextEditingController _usernameTextController = TextEditingController(text: '');
+  final TextEditingController _passwordTextController = TextEditingController(text: '');
+
+  @override
+  initState() {
+    super.initState();
+    loadSharedPreferences();
+  }
+
+  Future clearSharedPreferences() async {
+    SharedPreferences prefs = await _prefs;
+    setState(() {
+      prefs.setString('token', '');
+      prefs.setString('empresa', 'URBANITO');
+      prefs.setString('username', '');
+      prefs.setString('password', '');
+      _usernameTextController.value = const TextEditingValue(
+          text: ''
+      );
+      _passwordTextController.value = const TextEditingValue(
+          text: ''
+      );
+      loginRequestModel.username = '';
+      loginRequestModel.password = '';
+      empresa = 'URBANITO';
+    });
+  }
+
+  Future loadSharedPreferences () async {
+    SharedPreferences prefs = await _prefs;
+    setState(() {
+      empresa = prefs.getString('empresa')!;
+      if (!empresas.contains(empresa)) {
+        empresa = 'URBANITO';
+      }
+      username = prefs.getString('username')!;
+      password = prefs.getString('password')!;
+      _usernameTextController.value = TextEditingValue(
+        text: username
+      );
+      _passwordTextController.value = TextEditingValue(
+          text: password
+      );
+      loginRequestModel.username = username;
+      loginRequestModel.password = password;
+    });
+  }
 
   onLogin() {
     var apiService = APIService();
-    apiService.login(loginRequestModel).then( (value) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AgendaScreen()));
-    });
+    apiService.setEmpresa(empresa).then((success) {
+      apiService.login(loginRequestModel).then( (value) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AgendaScreen()));
+      }).catchError((error) {
+        final snackBar = SnackBar(content: Text(error.message));
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      });
+    });    
+  }
+
+  Widget buildEmpresa() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+            'Empresa',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold
+            )
+        ),
+        const SizedBox(height: 10),
+        Container(
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, 2)
+                )
+              ]
+          ),
+          height: height,
+          child: Stack(
+            children: [
+              Container(
+                  margin: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 14.0),
+                  child: const Icon(
+                    Icons.domain,
+                    color: Color(0x990066a9),
+                    size: 20.0,
+                  )
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 14.0, left: 48.0, right: 14, bottom: 14.0),
+                child: DropdownButton(
+                  isExpanded: true,
+                  items: empresas.map<DropdownMenuItem<String>>(
+                          (String value) => DropdownMenuItem<String>(
+                              value: value, child: Text(value))
+                  ).toList(),
+                  onChanged: (String? newValue) => {
+                    setState(() {
+                      empresa = newValue!;
+                    })
+                  },
+                  underline: const SizedBox(),
+                  value: empresa,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget buildEmail() {
@@ -55,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen>{
                 )
               ]
           ),
-          height: 60,
+          height: height,
           child: TextFormField(
             onChanged: (input) => loginRequestModel.username = input,
             keyboardType: TextInputType.emailAddress,
@@ -74,6 +199,8 @@ class _LoginScreenState extends State<LoginScreen>{
                     color: Colors.black38
                 )
             ),
+            // initialValue: username,
+            controller: _usernameTextController,
           ),
         )
       ],
@@ -85,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen>{
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-            'Password',
+            'Contraseña',
             style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -106,13 +233,15 @@ class _LoginScreenState extends State<LoginScreen>{
                 )
               ]
           ),
-          height: 60,
+          height: height,
           child: TextFormField(
             onChanged: (input) => loginRequestModel.password = input,
             keyboardType: TextInputType.emailAddress,
             style: const TextStyle(
               color: Colors.black87,
             ),
+            // initialValue: password,
+            controller: _passwordTextController,
             obscureText: true,
             obscuringCharacter: '*',
             decoration: const InputDecoration(
@@ -125,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen>{
                 hintText: 'Password',
                 hintStyle: TextStyle(
                     color: Colors.black38
-                )
+                ),
             ),
           ),
         )
@@ -135,24 +264,45 @@ class _LoginScreenState extends State<LoginScreen>{
 
 
   Widget buildLoginBtn() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 25),
-      width: double.infinity,
-      child: TextButton(
-          onPressed: () => onLogin(),
-          child: const Text(
-              'Ingresar',
-              style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold
+    return Row(
+      children: [
+        Expanded(
+          flex: 4,
+          child: TextButton(
+              onPressed: () => onLogin(),
+              child: const Text(
+                  'Ingresar',
+                  style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold
+                  )
+              ),
+              style: ElevatedButton.styleFrom(
+                  elevation: 8,
+                  primary: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical:14)
               )
           ),
-          style: ElevatedButton.styleFrom(
-              primary: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical:20)
-          )
-      ),
+        ),
+        SizedBox(width: 10),
+        Expanded(
+          flex: 1,
+          child: TextButton(
+              onPressed: () => clearSharedPreferences(),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 18
+              ),
+              style: ElevatedButton.styleFrom(
+                  elevation: 8,
+                  primary: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical:16)
+              )
+          ),
+        ),
+      ],
     );
   }
 
@@ -188,18 +338,21 @@ class _LoginScreenState extends State<LoginScreen>{
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Log In',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold
-                        )),
-                    const SizedBox(height: 50),
-                    buildEmail(),
+                    Image.asset('assets/images/logo.png', width: 560),
                     const SizedBox(height: 20),
+                    buildEmpresa(),
+                    const SizedBox(height: 10),
+                    buildEmail(),
+                    const SizedBox(height: 10),
                     buildPassword(),
                     const SizedBox(height: 20),
-                    buildLoginBtn()
+                    buildLoginBtn(),
+                    const SizedBox(height: 20),
+                    Text('Versión $version',
+                      style: const TextStyle(
+                        color: Colors.white
+                      )
+                    )
                   ]
                 )
               )
@@ -210,4 +363,6 @@ class _LoginScreenState extends State<LoginScreen>{
       ),
     );
   }
+
+
 }
