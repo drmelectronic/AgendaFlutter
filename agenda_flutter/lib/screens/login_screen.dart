@@ -1,5 +1,3 @@
-
-
 import 'package:agenda/entity/empresa.dart';
 import 'package:agenda/models/login.dart';
 import 'package:agenda/screens/agenda_screen.dart';
@@ -9,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key, required this.empresas}) : super(key: key);
+  const LoginScreen({super.key, required this.empresas});
 
   final List<Empresa> empresas;
 
@@ -275,6 +273,11 @@ class _LoginScreenState extends State<LoginScreen>{
           flex: 4,
           child: TextButton(
               onPressed: () => onLogin(),
+              style: ElevatedButton.styleFrom(
+                  elevation: 8,
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical:14)
+              ),
               child: const Text(
                   'Ingresar',
                   style: TextStyle(
@@ -282,11 +285,6 @@ class _LoginScreenState extends State<LoginScreen>{
                       fontSize: 18,
                       fontWeight: FontWeight.bold
                   )
-              ),
-              style: ElevatedButton.styleFrom(
-                  elevation: 8,
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical:14)
               )
           ),
         ),
@@ -295,15 +293,15 @@ class _LoginScreenState extends State<LoginScreen>{
           flex: 1,
           child: TextButton(
               onPressed: () => clearSharedPreferences(),
-              child: const Icon(
-                Icons.delete,
-                color: Colors.white,
-                size: 18
-              ),
               style: ElevatedButton.styleFrom(
                   elevation: 8,
                   backgroundColor: Colors.red,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical:16)
+              ),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 18
               )
           ),
         ),
