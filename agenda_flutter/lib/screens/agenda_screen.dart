@@ -55,10 +55,9 @@ class _AgendaScreenState extends State<AgendaScreen> {
   @override
   Widget build(BuildContext context) {
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      onPopInvoked: (didPop) {
         preguntarSalir();
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
