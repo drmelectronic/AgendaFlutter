@@ -1,13 +1,18 @@
-import 'package:agenda_flutter/components/unidad_row.dart';
-import 'package:agenda_flutter/entity/unidad.dart';
+import 'package:agenda/components/unidad_row.dart';
+import 'package:agenda/entity/unidad.dart';
 import 'package:flutter/material.dart';
 
-class UnidadListWidget extends StatelessWidget {
+class UnidadListWidget extends StatefulWidget {
 
+
+  const UnidadListWidget(List<Unidad> unidades, {super.key});
+
+  @override
+  State<UnidadListWidget> createState() => _UnidadListWidgetState();
+}
+
+class _UnidadListWidgetState extends State<UnidadListWidget> {
   List<Unidad> unidades = [];
-
-  UnidadListWidget(List<Unidad> unidades) : super();
-
 
   @override
   Widget build(BuildContext context) {
@@ -17,5 +22,4 @@ class UnidadListWidget extends StatelessWidget {
       ]
     );
   }
-
 }

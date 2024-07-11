@@ -1,15 +1,17 @@
 
-import 'package:agenda_flutter/models/login.dart';
-import 'package:agenda_flutter/screens/agenda_screen.dart';
-import 'package:agenda_flutter/services/api_service.dart';
+
+import 'package:agenda/entity/empresa.dart';
+import 'package:agenda/models/login.dart';
+import 'package:agenda/screens/agenda_screen.dart';
+import 'package:agenda/services/api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({Key? key, required this.empresas}) : super(key: key);
 
+  final List<Empresa> empresas;
 
   @override
   State<StatefulWidget> createState() => _LoginScreenState();
@@ -17,34 +19,40 @@ class LoginScreen extends StatefulWidget {
 
 
 class _LoginScreenState extends State<LoginScreen>{
-  List<String> empresas =  ['ARCOIRIS', 'ET160', 'ET41', 'ETFVSA', 'ETMISPSA',
-    'EVIFASA', 'LAS FLORES', 'LUBARSA', 'SAN GENARO', 'SAN GERMAN', 'SAN PEDRO',
-    'SMP36', 'URBANITO'];
+  List<String> empresas =  [];
 
   LoginRequestModel loginRequestModel = LoginRequestModel(password: '', username: '');
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  String empresa = 'URBANITO';
+  String empresa = 'urbanito';
   String username = '';
   String password = '';
   bool hidePassword = true;
-  var version = '1.0.3';
+  var version = '1.0.9';
 
   double height = 50;
 
   final TextEditingController _usernameTextController = TextEditingController(text: '');
   final TextEditingController _passwordTextController = TextEditingController(text: '');
 
+  List<DropdownMenuItem<String>> empresasItems = [];
+
   @override
   initState() {
-    super.initState();
+    empresasItems = widget.empresas.map<DropdownMenuItem<String>>(
+            (Empresa value) => DropdownMenuItem<String>(
+            value: value.codigo, child: Text(value.nombre))
+    ).toList(growable: false);
+    empresas = widget.empresas.map<String>((Empresa value) => value.codigo).toList(growable: false);
     loadSharedPreferences();
+    super.initState();
   }
+
 
   Future clearSharedPreferences() async {
     SharedPreferences prefs = await _prefs;
     setState(() {
       prefs.setString('token', '');
-      prefs.setString('empresa', 'URBANITO');
+      prefs.setString('empresa', 'urbanito');
       prefs.setString('username', '');
       prefs.setString('password', '');
       _usernameTextController.value = const TextEditingValue(
@@ -55,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen>{
       );
       loginRequestModel.username = '';
       loginRequestModel.password = '';
-      empresa = 'URBANITO';
+      empresa = 'urbanito';
     });
   }
 
@@ -64,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen>{
     setState(() {
       empresa = prefs.getString('empresa') ?? '';
       if (!empresas.contains(empresa)) {
-        empresa = 'URBANITO';
+        empresa = 'urbanito';
       }
       username = prefs.getString('username') ?? '';
       password = prefs.getString('password') ?? '';
@@ -85,15 +93,15 @@ class _LoginScreenState extends State<LoginScreen>{
       apiService.login(loginRequestModel).then( (value) {
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AgendaScreen()));
+            MaterialPageRoute(builder: (context) => AgendaScreen(empresas: widget.empresas)));
       }).catchError((error) {
         final snackBar = SnackBar(content: Text(error.message));
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
       });
-    });    
+    });
   }
 
-  Widget buildEmpresa() {
+  Widget buildEmpresa(List<Empresa> empresas) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -134,10 +142,7 @@ class _LoginScreenState extends State<LoginScreen>{
                 padding: const EdgeInsets.only(top: 14.0, left: 48.0, right: 14, bottom: 14.0),
                 child: DropdownButton(
                   isExpanded: true,
-                  items: empresas.map<DropdownMenuItem<String>>(
-                          (String value) => DropdownMenuItem<String>(
-                              value: value, child: Text(value))
-                  ).toList(),
+                  items: empresasItems,
                   onChanged: (String? newValue) => {
                     setState(() {
                       empresa = newValue!;
@@ -280,12 +285,12 @@ class _LoginScreenState extends State<LoginScreen>{
               ),
               style: ElevatedButton.styleFrom(
                   elevation: 8,
-                  primary: Colors.white,
+                  backgroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical:14)
               )
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           flex: 1,
           child: TextButton(
@@ -297,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen>{
               ),
               style: ElevatedButton.styleFrom(
                   elevation: 8,
-                  primary: Colors.red,
+                  backgroundColor: Colors.red,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical:16)
               )
           ),
@@ -340,7 +345,7 @@ class _LoginScreenState extends State<LoginScreen>{
                   children: [
                     Image.asset('assets/images/logo.png', width: 560),
                     const SizedBox(height: 20),
-                    buildEmpresa(),
+                    buildEmpresa(widget.empresas),
                     const SizedBox(height: 10),
                     buildEmail(),
                     const SizedBox(height: 10),

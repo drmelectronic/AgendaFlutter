@@ -1,5 +1,6 @@
-import 'package:agenda_flutter/screens/agenda_screen.dart';
-import 'package:agenda_flutter/screens/login_screen.dart';
+import 'package:agenda/screens/agenda_screen.dart';
+import 'package:agenda/screens/login_screen.dart';
+import 'package:agenda/services/api_service.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -7,12 +8,14 @@ import 'package:page_transition/page_transition.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'entity/empresa.dart';
+
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -35,15 +38,17 @@ class MyApp extends StatelessWidget {
   }
 
   Future<Widget> loadDatabase() async {
-    final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-    SharedPreferences prefs = await _prefs;
+    var apiService = APIService();
+    List<Empresa> empresas = (await apiService.loadEmpresas());
+    final Future<SharedPreferences> prefs0 = SharedPreferences.getInstance();
+    SharedPreferences prefs = await prefs0;
     String? token = prefs.getString('token');
     if (token == null || token == '') {
       prefs.setString('source', 'server');
-      return const LoginScreen();
+      return LoginScreen(empresas: empresas);
     } else {
       prefs.setString('source', 'db');
-      return AgendaScreen();
+      return AgendaScreen(empresas: empresas);
     }
   }
 }

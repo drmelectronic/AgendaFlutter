@@ -1,16 +1,21 @@
-import 'package:agenda_flutter/components/unidad_list.dart';
-import 'package:agenda_flutter/components/unidad_row.dart';
-import 'package:agenda_flutter/entity/unidad.dart';
-import 'package:agenda_flutter/services/api_service.dart';
+import 'package:agenda/components/unidad_list.dart';
+import 'package:agenda/components/unidad_row.dart';
+import 'package:agenda/entity/empresa.dart';
+import 'package:agenda/entity/unidad.dart';
+import 'package:agenda/services/api_service.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../database.dart';
 import 'login_screen.dart';
 
 
 
 class AgendaScreen extends StatefulWidget {
+  final List<Empresa> empresas;
+
+  const AgendaScreen({super.key, required this.empresas});
 
   @override
   State<StatefulWidget> createState() => _AgendaScreenState();
@@ -18,12 +23,13 @@ class AgendaScreen extends StatefulWidget {
 
 class _AgendaScreenState extends State<AgendaScreen> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
-  UnidadListWidget unidades = UnidadListWidget(const []);
+  UnidadListWidget unidades = const UnidadListWidget([]);
 
   reloadUnidades() async {
     SharedPreferences prefs = await _prefs;
     prefs.setString('source', 'server');
-    _getUnidades();
+    await _getUnidades();
+    setState(() {});
   }
 
   Future<List<Unidad>> _getUnidades() async {
@@ -95,10 +101,10 @@ class _AgendaScreenState extends State<AgendaScreen> {
   void preguntarSalir() async {
     bool salir = await confirm(
         context,
-        title: Text('Desea salir?'),
-        content: Text('Realmente desea cerrar su sesión'),
-        textOK: Text('Sí'),
-        textCancel: Text('No')
+        title: const Text('Desea salir?'),
+        content: const Text('Realmente desea cerrar su sesión'),
+        textOK: const Text('Sí'),
+        textCancel: const Text('No')
     );
     if (salir) {
       SharedPreferences prefs = await _prefs;
@@ -106,7 +112,7 @@ class _AgendaScreenState extends State<AgendaScreen> {
       prefs.setString('source', 'server');
       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()));
+          MaterialPageRoute(builder: (context) => LoginScreen(empresas: widget.empresas)));
     }
   }
 

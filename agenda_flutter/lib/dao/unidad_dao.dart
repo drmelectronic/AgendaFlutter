@@ -1,4 +1,4 @@
-import 'package:agenda_flutter/entity/unidad.dart';
+import 'package:agenda/entity/unidad.dart';
 import 'package:floor/floor.dart';
 
 @dao
